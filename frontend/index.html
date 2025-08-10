@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Trading Dashboard</title>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>📈 Stock Trading Dashboard</h1>
+                <div class="header-controls">
+                    <div class="search-container">
+                        <input type="text" id="stockSearch" placeholder="Search stocks..." autocomplete="off">
+                        <button id="searchButton">🔍</button>
+                        <div id="searchResults" class="search-results hidden"></div>
+                    </div>
+                    <button id="themeToggle" class="theme-toggle">🌙</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stock Info Panel -->
+            <div class="stock-info">
+                <div class="stock-header">
+                    <h2 id="stockSymbol">AAPL</h2>
+                    <div class="stock-price-info">
+                        <span id="stockPrice">$0.00</span>
+                        <span id="stockChange" class="stock-change">+$0.00 (+0.00%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <!-- Overall Signal -->
+                <div class="sidebar-section analysis-above-chart">
+                    <h3>📋 Overall Signal</h3>
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <span class="indicator">Signal:</span>
+                            <span id="overallSignal" class="value signal-neutral">--</span>
+                        </div>
+                        <div class="analysis-item">
+                            <span class="indicator">Confidence:</span>
+                            <span id="signalConfidence" class="value">--</span>
+                        </div>
+                    </div>
+                    <div class="analysis-description">
+                        <p id="overallDescription">--</p>
+                    </div>
+                    <div class="analysis-footer">
+                        <small id="dataTimeframe">Based on -- days of data</small>
+                    </div>
+                </div>
+
+                <!-- Technical Indicators -->
+                <div class="sidebar-section analysis-above-chart">
+                    <h3>📊 Technical Indicators</h3>
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <span class="indicator">RSI (14):</span>
+                            <span id="currentRSI" class="value">--</span>
+                        </div>
+                        <div class="analysis-item">
+                            <span class="indicator">SMA (20):</span>
+                            <span id="currentSMA" class="value">--</span>
+                        </div>
+                        <div class="analysis-item">
+                            <span class="indicator">EMA (20):</span>
+                            <span id="currentEMA" class="value">--</span>
+                        </div>
+                        <div class="analysis-item">
+                            <span class="indicator">MACD:</span>
+                            <span id="currentMACD" class="value">--</span>
+                        </div>
+                        <div class="analysis-item">
+                            <span class="indicator">Bollinger %:</span>
+                            <span id="bollingerPosition" class="value">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Price Chart -->
+                <div class="chart-container">
+                    <h3>Price Chart</h3>
+                    <!-- Chart Controls inside Price Chart -->
+                    <div class="chart-controls-inline">
+                        <div class="control-group">
+                            <label for="chartType">Chart Type:</label>
+                            <select id="chartType">
+                                <option value="candlestick">Candlestick</option>
+                                <option value="line">Line</option>
+                                <option value="area">Area</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="movingAverages">Moving Averages:</label>
+                            <select id="movingAverages" multiple>
+                                <option value="5">MA5</option>
+                                <option value="9">MA9</option>
+                                <option value="21" selected>MA21</option>
+                                <option value="50" selected>MA50</option>
+                                <option value="200" selected>MA200</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="period">Period:</label>
+                            <select id="period">
+                                <option value="1m">1m</option>
+                                <option value="2m">2m</option>
+                                <option value="5m">5m</option>
+                                <option value="15m">15m</option>
+                                <option value="30m">30m</option>
+                                <option value="60m">1h</option>
+                                <option value="90m">90m</option>
+                                <option value="1h">1h</option>
+                                <option value="1d" selected>1d</option>
+                                <option value="5d">5d</option>
+                                <option value="1wk">1wk</option>
+                                <option value="1mo">1mo</option>
+                                <option value="3mo">3mo</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="range">Range:</label>
+                            <select id="range">
+                                <option value="1d">1 Day</option>
+                                <option value="5d">5 Days</option>
+                                <option value="1mo" selected>1 Month</option>
+                                <option value="3mo">3 Months</option>
+                                <option value="6mo">6 Months</option>
+                                <option value="1y">1 Year</option>
+                                <option value="2y">2 Years</option>
+                                <option value="5y">5 Years</option>
+                                <option value="10y">10 Years</option>
+                                <option value="ytd">YTD</option>
+                                <option value="max">Max</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="priceChart" class="chart"></div>
+                </div>
+
+                <!-- Volume Chart -->
+                <div class="chart-container">
+                    <h3>Volume</h3>
+                    <div id="volumeChart" class="chart chart-small"></div>
+                </div>
+
+                <!-- RSI Chart -->
+                <div class="chart-container">
+                    <h3>RSI (14)</h3>
+                    <div id="rsiChart" class="chart chart-small"></div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Market Data -->
+                <div class="sidebar-section">
+                    <h3>Market Data</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="label">Open:</span>
+                            <span id="openPrice">$0.00</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">High:</span>
+                            <span id="highPrice">$0.00</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">Low:</span>
+                            <span id="lowPrice">$0.00</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">Prev Close:</span>
+                            <span id="previousClose">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company Info -->
+                <div class="sidebar-section">
+                    <h3>Company Info</h3>
+                    <div class="data-grid">
+                        <div class="data-item">
+                            <span class="label">Industry:</span>
+                            <span id="industry">N/A</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">Exchange:</span>
+                            <span id="exchange">N/A</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">Country:</span>
+                            <span id="country">N/A</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">Market Cap:</span>
+                            <span id="marketCap">N/A</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical Analysis -->
+                <!-- Price Analysis -->
+                <div class="sidebar-section">
+                    <h3>📊 Price Analysis</h3>
+                    <div class="analysis-item">
+                        <span class="indicator">Current Price:</span>
+                        <span id="analysisCurrentPrice" class="value">--</span>
+                    </div>
+                    <div class="analysis-item">
+                        <span class="indicator">Change:</span>
+                        <span id="analysisChange" class="value">--</span>
+                    </div>
+                    <div class="analysis-item">
+                        <span class="indicator">Range Position:</span>
+                        <span id="rangePosition" class="value">--</span>
+                    </div>
+                </div>
+
+                <!-- Breakout Analysis -->
+                <div class="sidebar-section">
+                    <h3>🚀 Breakout Analysis</h3>
+                    <div class="analysis-item">
+                        <span class="indicator">Signal:</span>
+                        <span id="breakoutSignal" class="value signal-neutral">--</span>
+                    </div>
+                    <div class="analysis-item">
+                        <span class="indicator">Resistance:</span>
+                        <span id="resistanceLevel" class="value">--</span>
+                    </div>
+                    <div class="analysis-item">
+                        <span class="indicator">Support:</span>
+                        <span id="supportLevel" class="value">--</span>
+                    </div>
+                    <div class="analysis-description">
+                        <p id="breakoutDescription">--</p>
+                    </div>
+                </div>
+
+                <!-- Volume Analysis -->
+                <div class="sidebar-section">
+                    <h3>📈 Volume Analysis</h3>
+                    <div class="analysis-item">
+                        <span class="indicator">Volume Signal:</span>
+                        <span id="volumeSignal" class="value signal-neutral">--</span>
+                    </div>
+                    <div class="analysis-item">
+                        <span class="indicator">Current Volume:</span>
+                        <span id="currentVolume" class="value">--</span>
+                    </div>
+                    <div class="analysis-item">
+                        <span class="indicator">vs Average:</span>
+                        <span id="volumeRatio" class="value">--</span>
+                    </div>
+                    <div class="analysis-description">
+                        <p id="volumeDescription">--</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
