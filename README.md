@@ -32,7 +32,10 @@ This project features **automated CI/CD** with GitHub Actions:
 - Multi-platform support (AMD64 + ARM64)
 - Instant deployment to Docker Hub
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+**📚 Detailed Documentation:**
+- [📋 Deployment Guide](./DEPLOYMENT.md) - Complete setup and deployment instructions
+- [🐳 Docker Reference](./DOCKER_REFERENCE.md) - All Docker & Docker Compose commands
+- [⚡ GitHub Actions](./GITHUB_ACTIONS.md) - CI/CD workflow documentation
 
 ## 📊 Features
 
@@ -45,17 +48,42 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
 
 ## 🛠️ Development
 
+### Local Development
 ```bash
 # Start development servers
 npm run dev:backend
-npm run dev:frontend
+npm run dev:frontend  
 npm run dev:react
 
-# Build Docker images
-docker compose build
+# Or use Docker for development
+docker compose -f docker-compose.dev.yml up -d
+```
 
-# Run tests
-npm test
+### Docker Commands Quick Reference
+```bash
+# Start all services
+docker compose up -d
+
+# Update with latest images
+docker compose down && docker compose pull && docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Restart specific service
+docker compose restart <service-name>
+
+# Build and start
+docker compose up -d --build
+```
+
+### Automated Deployment
+```bash
+# Commit and trigger automated build
+.\deploy.bat "Your commit message"
+
+# Or manually
+git add . && git commit -m "message" && git push origin main
 ```
 
 ## 📝 License

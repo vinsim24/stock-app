@@ -44,10 +44,34 @@ echo -e "${BLUE}📤 Pushing to GitHub...${NC}"
 git push origin main
 
 echo -e "${GREEN}✅ Successfully pushed to GitHub!${NC}"
-echo -e "${YELLOW}🔄 GitHub Actions will now automatically:${NC}"
-echo "   • Build Docker images"
-echo "   • Push to Docker Hub"
-echo "   • Tag with commit SHA"
+
+# Check what type of workflow will run
+CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+CODE_CHANGED=false
+for file in $CHANGED_FILES; do
+    if [[ ! "$file" =~ \.(md|txt)$ ]] && \
+       [[ ! "$file" =~ ^docs/ ]] && \
+       [[ "$file" != ".gitignore" ]] && \
+       [[ "$file" != "LICENSE" ]] && \
+       [[ "$file" != "deploy.sh" ]] && \
+       [[ "$file" != "deploy.bat" ]]; then
+        CODE_CHANGED=true
+        break
+    fi
+done
+
+if [ "$CODE_CHANGED" = true ]; then
+    echo -e "${YELLOW}🔄 GitHub Actions will now automatically:${NC}"
+    echo "   • Build Docker images"
+    echo "   • Push to Docker Hub"
+    echo "   • Tag with commit SHA"
+else
+    echo -e "${YELLOW}📝 Documentation-only changes detected:${NC}"
+    echo "   • Will run documentation validation"
+    echo "   • Docker builds skipped (saves time and resources)"
+    echo "   • Next code commit will trigger Docker builds"
+fi
+
 echo ""
 echo -e "${BLUE}📊 Monitor progress at:${NC}"
 echo "   https://github.com/vinsim24/stock-app/actions"
