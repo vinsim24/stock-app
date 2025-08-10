@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  # Redis cache service
+  redis:
+    image: redis:7-alpine
+    container_name: stock-app-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    networks:
+      - stock-app-network
+    volumes:
+      - redis-data:/data
+
   # Backend API service
   backend:
     build:
@@ -12,6 +25,9 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
     restart: unless-stopped
     networks:
       - stock-app-network
@@ -66,3 +82,4 @@ networks:
 
 volumes:
   stock-app-data:
+  redis-data:
