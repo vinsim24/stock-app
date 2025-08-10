@@ -1,4 +1,4 @@
-# Frontend (Vanilla JS) Dockerfile
+# Frontend React Dockerfile
 FROM node:18-alpine as builder
 
 WORKDIR /app
