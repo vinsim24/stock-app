@@ -277,6 +277,23 @@ function App() {
     );
   };
 
+  const formatMarketCap = (marketCap) => {
+    if (!marketCap || marketCap === 'N/A' || marketCap === 0) return 'N/A';
+    
+    const num = typeof marketCap === 'string' ? parseFloat(marketCap) : marketCap;
+    if (isNaN(num)) return 'N/A';
+    
+    if (num >= 1e12) {
+      return `$${(num / 1e12).toFixed(2)}T`;
+    } else if (num >= 1e9) {
+      return `$${(num / 1e9).toFixed(2)}B`;
+    } else if (num >= 1e6) {
+      return `$${(num / 1e6).toFixed(2)}M`;
+    } else {
+      return `$${num.toFixed(2)}`;
+    }
+  };
+
   return (
     <div className={`min-h-screen transition-colors ${isDark ? 'dark bg-gray-950' : 'bg-gray-50'}`}>
       {/* Header */}
@@ -465,7 +482,7 @@ function App() {
               industry: companyInfo.finnhubIndustry || companyInfo.industry,
               exchange: companyInfo.exchange,
               country: companyInfo.country,
-              marketCap: companyInfo.marketCapitalization ? `$${(companyInfo.marketCapitalization / 1000).toFixed(2)}B` : companyInfo.marketCap
+              marketCap: formatMarketCap(companyInfo.marketCap)
             } : {}}
             analysis={analysis}
             isDark={isDark}

@@ -249,15 +249,25 @@ class TradingApp {
     updateCompanyInfo() {
         if (!this.companyInfo) return;
 
-        document.getElementById('industry').textContent = this.companyInfo.finnhubIndustry || 'N/A';
+        document.getElementById('industry').textContent = this.companyInfo.finnhubIndustry || this.companyInfo.industry || 'N/A';
         document.getElementById('exchange').textContent = this.companyInfo.exchange || 'N/A';
         document.getElementById('country').textContent = this.companyInfo.country || 'N/A';
         
-        const marketCap = this.companyInfo.marketCapitalization;
-        if (marketCap) {
-            const marketCapText = marketCap > 1000 ? 
-                `$${(marketCap / 1000).toFixed(2)}B` : 
-                `$${marketCap.toFixed(2)}M`;
+        const marketCap = this.companyInfo.marketCap || this.companyInfo.marketCapitalization;
+        if (marketCap && marketCap !== 0 && marketCap !== 'N/A') {
+            const num = typeof marketCap === 'string' ? parseFloat(marketCap) : marketCap;
+            let marketCapText;
+            
+            if (num >= 1e12) {
+                marketCapText = `$${(num / 1e12).toFixed(2)}T`;
+            } else if (num >= 1e9) {
+                marketCapText = `$${(num / 1e9).toFixed(2)}B`;
+            } else if (num >= 1e6) {
+                marketCapText = `$${(num / 1e6).toFixed(2)}M`;
+            } else {
+                marketCapText = `$${num.toFixed(2)}`;
+            }
+            
             document.getElementById('marketCap').textContent = marketCapText;
         } else {
             document.getElementById('marketCap').textContent = 'N/A';
