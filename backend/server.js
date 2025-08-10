@@ -258,35 +258,24 @@ app.get('/api/company/:symbol', async (req, res) => {
     }
 });
 
-// Search stocks
+// Search stocks (Real-time, no caching for immediate results)
 app.get('/api/search', async (req, res) => {
     try {
         const { q } = req.query;
         
         if (!q || q.trim().length < 1) {
-            return res.json([]);
-        }
-
-        console.log(`Searching for: ${q}`);
-
-        // Generate cache key for search results
-        const cacheKey = cacheService.getSearchKey(q);
-        
-        // Try to get search results from cache first
-        const cachedResults = await cacheService.get(cacheKey);
-        if (cachedResults) {
-            console.log(`📦 Cache HIT for search "${q}"`);
             return res.json({
-                ...cachedResults,
-                cached: true,
-                cacheTime: new Date().toISOString()
+                query: q,
+                results: [],
+                fetchTime: new Date().toISOString(),
+                cached: false
             });
         }
-        
-        console.log(`🌐 Cache MISS - Fetching fresh search results for "${q}"`);
+
+        console.log(`🔍 Searching for: "${q}" (real-time)`);
 
         const result = await yahooFinance.search(q, {
-            quotesCount: 10,
+            quotesCount: 15,
             newsCount: 0
         });
 
@@ -302,23 +291,20 @@ app.get('/api/search', async (req, res) => {
         const searchResults = {
             query: q,
             results: stocks,
-            fetchTime: new Date().toISOString()
+            fetchTime: new Date().toISOString(),
+            cached: false
         };
 
-        // Cache search results for 30 minutes
-        await cacheService.set(cacheKey, searchResults, cacheService.CACHE_DURATIONS.SEARCH_RESULTS);
-        console.log(`💾 Cached search results for "${q}"`);
-
-        res.json({
-            ...searchResults,
-            cached: false
-        });
+        res.json(searchResults);
 
     } catch (error) {
         console.error('Error searching stocks:', error);
         res.status(500).json({ 
             error: 'Failed to search stocks',
-            details: error.message 
+            details: error.message,
+            query: req.query.q || '',
+            results: [],
+            cached: false
         });
     }
 });

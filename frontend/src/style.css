@@ -38,11 +38,67 @@ body {
     align-items: center;
 }
 
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
 .header h1 {
     color: #4fc3f7;
     font-size: 1.8rem;
     font-weight: 700;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Company Info in Header */
+.company-info-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, rgba(79, 195, 247, 0.1) 0%, rgba(156, 39, 176, 0.1) 100%);
+    border: 1px solid rgba(79, 195, 247, 0.3);
+    border-radius: 8px;
+}
+
+.company-symbol-section {
+    text-align: center;
+}
+
+.company-symbol {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.company-exchange {
+    font-size: 0.75rem;
+    color: #b0b0b0;
+}
+
+.company-divider {
+    width: 1px;
+    height: 2rem;
+    background-color: rgba(176, 176, 176, 0.3);
+}
+
+.company-details {
+    max-width: 200px;
+}
+
+.company-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.company-industry {
+    font-size: 0.75rem;
+    color: #b0b0b0;
 }
 
 .header-controls {

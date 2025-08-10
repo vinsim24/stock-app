@@ -9,6 +9,7 @@ class TradingApp {
         this.companyInfo = null;
         this.currentPrice = null;
         this.searchResults = [];
+        this.searchTimeout = null;
         this.isDarkTheme = false;
         
         this.initializeCharts();
@@ -44,6 +45,12 @@ class TradingApp {
         
         searchInput.addEventListener('input', (e) => {
             this.searchStocks(e.target.value);
+        });
+        
+        searchInput.addEventListener('focus', () => {
+            // Clear search input when focused for new search
+            searchInput.value = '';
+            searchResults.classList.add('hidden');
         });
         
         searchButton.addEventListener('click', () => {
@@ -140,19 +147,30 @@ class TradingApp {
     }
 
     async searchStocks(query) {
+        // Clear previous timeout
+        if (this.searchTimeout) {
+            clearTimeout(this.searchTimeout);
+        }
+        
         if (!query.trim()) {
             document.getElementById('searchResults').classList.add('hidden');
             return;
         }
 
-        try {
-            const response = await fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            this.searchResults = data || [];
-            this.displaySearchResults();
-        } catch (error) {
-            console.error('Error searching stocks:', error);
-        }
+        // Debounce search by 300ms
+        this.searchTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch(`http://localhost:3001/api/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                // Handle both old format (array) and new format (object with results)
+                this.searchResults = Array.isArray(data) ? data : (data.results || []);
+                this.displaySearchResults();
+            } catch (error) {
+                console.error('Error searching stocks:', error);
+                this.searchResults = [];
+                document.getElementById('searchResults').classList.add('hidden');
+            }
+        }, 300);
     }
 
     displaySearchResults() {
@@ -175,7 +193,7 @@ class TradingApp {
 
     selectStock(symbol, description = '') {
         this.currentSymbol = symbol.toUpperCase();
-        document.getElementById('stockSearch').value = description || symbol;
+        document.getElementById('stockSearch').value = ''; // Clear search input when stock is selected
         document.getElementById('searchResults').classList.add('hidden');
         document.getElementById('stockSymbol').textContent = this.currentSymbol;
         
@@ -272,6 +290,29 @@ class TradingApp {
         } else {
             document.getElementById('marketCap').textContent = 'N/A';
         }
+
+        // Update header company info
+        this.updateHeaderCompanyInfo();
+    }
+
+    updateHeaderCompanyInfo() {
+        if (!this.companyInfo) {
+            document.getElementById('headerCompanyInfo').classList.add('hidden');
+            return;
+        }
+
+        const headerCompanyInfo = document.getElementById('headerCompanyInfo');
+        const headerSymbol = document.getElementById('headerSymbol');
+        const headerExchange = document.getElementById('headerExchange');
+        const headerCompanyName = document.getElementById('headerCompanyName');
+        const headerIndustry = document.getElementById('headerIndustry');
+
+        headerSymbol.textContent = this.currentSymbol;
+        headerExchange.textContent = this.companyInfo.exchange || 'N/A';
+        headerCompanyName.textContent = this.companyInfo.shortName || this.companyInfo.longName || this.companyInfo.name || 'Company Name';
+        headerIndustry.textContent = this.companyInfo.finnhubIndustry || this.companyInfo.industry || 'N/A';
+
+        headerCompanyInfo.classList.remove('hidden');
     }
 
     updateTechnicalAnalysis() {

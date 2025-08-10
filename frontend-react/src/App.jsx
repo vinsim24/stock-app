@@ -23,6 +23,7 @@ function App() {
   const [symbol, setSymbol] = useState('AAPL');
   const [searchInput, setSearchInput] = useState('');
   const [chartType, setChartType] = useState('candlestick');
+  const searchTimeoutRef = useRef(null);
   const [period, setPeriod] = useState('1d');
   const [range, setRange] = useState('1mo');
   const [isDark, setIsDark] = useState(false);
@@ -236,23 +237,39 @@ function App() {
       const response = await axios.get(`${API_BASE}/search`, {
         params: { q: query }
       });
-      setSearchResults(response.data || []);
+      // Handle both old format (array) and new format (object with results)
+      const results = Array.isArray(response.data) ? response.data : (response.data.results || []);
+      setSearchResults(results);
       setShowSearchResults(true);
     } catch (error) {
       console.error('Error searching stocks:', error);
       setSearchResults([]);
+      setShowSearchResults(false);
     }
   };
 
   const handleSearchInputChange = (e) => {
     const value = e.target.value;
     setSearchInput(value);
-    searchStocks(value);
+    
+    // Debounce search to avoid too many API calls
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      searchStocks(value);
+    }, 300); // 300ms delay
   };
 
   const selectStock = (selectedSymbol, description) => {
     setSymbol(selectedSymbol);
-    setSearchInput(description || selectedSymbol);
+    setSearchInput(''); // Clear search input when stock is selected
+    setShowSearchResults(false);
+  };
+
+  const handleSearchFocus = () => {
+    setSearchInput(''); // Clear search input when focused
     setShowSearchResults(false);
   };
 
@@ -299,9 +316,33 @@ function App() {
       {/* Header */}
       <header className={`${isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} border-b px-8 py-3 shadow-sm`}>
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-3">
-            <TrendingUp className={`h-8 w-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-            <h1 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Trading Dashboard</h1>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <TrendingUp className={`h-8 w-8 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+              <h1 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>Trading Dashboard</h1>
+            </div>
+            {/* Stock Info in Header */}
+            {companyInfo && (
+              <div className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/20">
+                <div className="text-center">
+                  <div className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    {symbol}
+                  </div>
+                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {companyInfo.exchange || 'N/A'}
+                  </div>
+                </div>
+                <div className="h-8 w-px bg-gray-300 dark:bg-gray-600"></div>
+                <div>
+                  <div className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'} max-w-[200px] truncate`}>
+                    {companyInfo.shortName || companyInfo.longName || companyInfo.name || 'Company Name'}
+                  </div>
+                  <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {companyInfo.industry || 'N/A'}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-4">
             {/* Search */}
@@ -312,6 +353,7 @@ function App() {
                   placeholder="Search stocks..."
                   value={searchInput}
                   onChange={handleSearchInputChange}
+                  onFocus={handleSearchFocus}
                   className="w-56"
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />

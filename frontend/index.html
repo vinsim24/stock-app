@@ -10,7 +10,9 @@
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1>📈 Stock Trading Dashboard</h1>
+                <div class="header-left">
+                    <h1>📈 Stock Trading Dashboard</h1>
+                </div>
                 <div class="header-controls">
                     <div class="search-container">
                         <input type="text" id="stockSearch" placeholder="Search stocks..." autocomplete="off">
@@ -28,6 +30,18 @@
             <div class="stock-info">
                 <div class="stock-header">
                     <h2 id="stockSymbol">AAPL</h2>
+                      <!-- Company Info in Header -->
+                    <div id="headerCompanyInfo" class="company-info-header hidden">
+                        <div class="company-symbol-section">
+                            <div class="company-symbol" id="headerSymbol">AAPL</div>
+                            <div class="company-exchange" id="headerExchange">NASDAQ</div>
+                        </div>
+                        <div class="company-divider"></div>
+                        <div class="company-details">
+                            <div class="company-name" id="headerCompanyName">Apple Inc.</div>
+                            <div class="company-industry" id="headerIndustry">Technology</div>
+                        </div>
+                    </div>
                     <div class="stock-price-info">
                         <span id="stockPrice">$0.00</span>
                         <span id="stockChange" class="stock-change">+$0.00 (+0.00%)</span>
