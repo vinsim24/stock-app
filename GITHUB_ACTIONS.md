@@ -2,10 +2,16 @@
 
 ## 🏗️ Workflow Overview
 
-Our automated CI/CD pipeline builds and deploys Docker images whenever code is pushed to the main branch.
+Our automated CI/CD pipeline includes multiple workflows for different purposes:
 
-### Workflow File Location
-`.github/workflows/docker-build-push.yml`
+1. **Build & Deploy** (`docker-build-push.yml`) - Builds and deploys Docker images 
+2. **Documentation** (`docs-update.yml`) - Validates documentation-only changes
+3. **Cleanup** (`cleanup-docker-images.yml`) - Manages Docker Hub storage automatically
+
+### Workflow File Locations
+- `.github/workflows/docker-build-push.yml`
+- `.github/workflows/docs-update.yml` 
+- `.github/workflows/cleanup-docker-images.yml`
 
 ## 🚀 Workflow Details
 
@@ -305,6 +311,42 @@ strategy:
     service: [backend, frontend, frontend-react]
     platform: [linux/amd64, linux/arm64]
 ```
+
+## 🧹 Docker Hub Cleanup Workflow
+
+### Automated Image Management
+The cleanup workflow (`cleanup-docker-images.yml`) automatically manages Docker Hub storage:
+
+**Schedule**: Every Sunday at 2 AM UTC
+**Trigger**: Can also be run manually via GitHub Actions UI
+
+### Configuration
+```yaml
+env:
+  DOCKER_USERNAME: vinsim24
+  KEEP_IMAGES: 5  # Number of recent images to keep per repository
+```
+
+### Cleanup Process
+1. **Login** to Docker Hub using stored credentials
+2. **Fetch** all image tags for each repository
+3. **Sort** by creation date (newest first)  
+4. **Preserve** the `latest` tag and most recent 5 versions
+5. **Delete** older tagged images to free up storage
+6. **Report** cleanup results
+
+### Repositories Managed
+- `vinsim24/stock-app-backend`
+- `vinsim24/stock-app-frontend`  
+- `vinsim24/stock-app-frontend-react`
+- `vinsim24/stock-app-nginx`
+
+### Benefits
+- ✅ **Cost Control**: Reduces Docker Hub storage costs
+- ✅ **Automated**: No manual intervention required  
+- ✅ **Safe**: Always preserves latest and recent versions
+- ✅ **Configurable**: Easy to adjust retention policy
+- ✅ **Transparent**: Full logging of cleanup actions
 
 ## 📋 Workflow Maintenance
 

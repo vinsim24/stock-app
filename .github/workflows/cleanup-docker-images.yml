@@ -1,0 +1,124 @@
+name: Cleanup Docker Images
+
+on:
+  schedule:
+    # Run every Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  DOCKER_USERNAME: vinsim24
+  KEEP_IMAGES: 5  # Number of recent images to keep per repository
+
+jobs:
+  cleanup-images:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: Install cleanup tools
+      run: |
+        sudo apt-get update && sudo apt-get install -y jq curl
+        
+    - name: Get Docker Hub token
+      id: token
+      run: |
+        TOKEN=$(curl -s -H "Content-Type: application/json" \
+          -X POST -d "{\"username\": \"${{ env.DOCKER_USERNAME }}\", \"password\": \"${{ secrets.DOCKER_PASSWORD }}\"}" \
+          https://hub.docker.com/v2/users/login/ | jq -r .token)
+        echo "token=$TOKEN" >> $GITHUB_OUTPUT
+        
+    - name: Cleanup function
+      run: |
+        cleanup_repo() {
+          local repo=$1
+          echo "🧹 Cleaning up $repo images..."
+          
+          # Get tags sorted by last_updated (newest first), excluding 'latest'
+          local tags=$(curl -s -H "Authorization: JWT ${{ steps.token.outputs.token }}" \
+            "https://hub.docker.com/v2/repositories/${{ env.DOCKER_USERNAME }}/$repo/tags/?page_size=100" | \
+            jq -r '.results | sort_by(.last_updated) | reverse | map(select(.name != "latest")) | .[].name')
+          
+          # Convert to array and get tags to delete (keep only KEEP_IMAGES)
+          local tags_array=($tags)
+          local total_tags=${#tags_array[@]}
+          
+          if [ $total_tags -le ${{ env.KEEP_IMAGES }} ]; then
+            echo "Only $total_tags tags found, keeping all"
+            return
+          fi
+          
+          echo "Found $total_tags tags, keeping ${{ env.KEEP_IMAGES }}, deleting $((total_tags - ${{ env.KEEP_IMAGES }}))"
+          
+          # Delete old tags (keep the first KEEP_IMAGES, delete the rest)
+          for (( i=${{ env.KEEP_IMAGES }}; i<$total_tags; i++ )); do
+            local tag="${tags_array[$i]}"
+            echo "Deleting tag: $tag"
+            
+            curl -s -X DELETE \
+              -H "Authorization: JWT ${{ steps.token.outputs.token }}" \
+              "https://hub.docker.com/v2/repositories/${{ env.DOCKER_USERNAME }}/$repo/tags/$tag/" \
+              && echo "✅ Deleted $tag" || echo "❌ Failed to delete $tag"
+          done
+        }
+        
+        # Export the function to make it available for subsequent steps
+        export -f cleanup_repo
+        echo 'cleanup_repo() {
+          local repo=$1
+          echo "🧹 Cleaning up $repo images..."
+          
+          local tags=$(curl -s -H "Authorization: JWT ${{ steps.token.outputs.token }}" \
+            "https://hub.docker.com/v2/repositories/${{ env.DOCKER_USERNAME }}/$repo/tags/?page_size=100" | \
+            jq -r ".results | sort_by(.last_updated) | reverse | map(select(.name != \"latest\")) | .[].name")
+          
+          local tags_array=($tags)
+          local total_tags=${#tags_array[@]}
+          
+          if [ $total_tags -le ${{ env.KEEP_IMAGES }} ]; then
+            echo "Only $total_tags tags found, keeping all"
+            return
+          fi
+          
+          echo "Found $total_tags tags, keeping ${{ env.KEEP_IMAGES }}, deleting $((total_tags - ${{ env.KEEP_IMAGES }}))"
+          
+          for (( i=${{ env.KEEP_IMAGES }}; i<$total_tags; i++ )); do
+            local tag="${tags_array[$i]}"
+            echo "Deleting tag: $tag"
+            
+            curl -s -X DELETE \
+              -H "Authorization: JWT ${{ steps.token.outputs.token }}" \
+              "https://hub.docker.com/v2/repositories/${{ env.DOCKER_USERNAME }}/$repo/tags/$tag/" \
+              && echo "✅ Deleted $tag" || echo "❌ Failed to delete $tag"
+          done
+        }' > /tmp/cleanup_function.sh
+        
+    - name: Cleanup all repositories
+      run: |
+        source /tmp/cleanup_function.sh
+        
+        # Clean up each repository
+        cleanup_repo "stock-app-backend"
+        cleanup_repo "stock-app-frontend"
+        cleanup_repo "stock-app-frontend-react"
+        cleanup_repo "stock-app-nginx"
+        
+    - name: Cleanup Summary
+      run: |
+        echo "✅ Docker Hub cleanup completed!"
+        echo "🔧 Kept ${{ env.KEEP_IMAGES }} most recent images per repository"
+        echo "📦 Repositories cleaned:"
+        echo "  • ${{ env.DOCKER_USERNAME }}/stock-app-backend"
+        echo "  • ${{ env.DOCKER_USERNAME }}/stock-app-frontend" 
+        echo "  • ${{ env.DOCKER_USERNAME }}/stock-app-frontend-react"
+        echo "  • ${{ env.DOCKER_USERNAME }}/stock-app-nginx"
+        echo "💾 Storage space freed up on Docker Hub"
+        echo "📅 Next automatic cleanup: Every Sunday at 2 AM UTC"

@@ -15,11 +15,12 @@ In your GitHub repository, add your Docker Hub password as a secret:
 
 ### 2. Automated Workflow
 The workflow (`.github/workflows/docker-build-push.yml`) automatically:
-- ✅ Builds all 3 Docker images (backend, frontend, frontend-react)
+- ✅ Builds all 4 Docker images (backend, frontend, frontend-react, nginx)
 - ✅ Pushes to Docker Hub with both `latest` and commit SHA tags
 - ✅ Supports multi-platform builds (AMD64 + ARM64)
 - ✅ Adds proper image labels and metadata
 - ✅ Uses Node.js 20 for Vite 7+ compatibility
+- ✅ Includes custom nginx image with embedded configuration
 
 ## 📝 Easy Deployment Commands
 
@@ -236,3 +237,10 @@ docker images
 - 🔐 **Security** best practices
 - 📝 **Comprehensive logging**
 - 🔍 **Monitoring** and observability
+
+### Custom Nginx Image
+- 🔧 **Embedded configuration** - no external file dependencies
+- 📦 **Portable deployment** - works anywhere with just docker-compose.yml
+- 🌐 **Reverse proxy** - unified access to all services on port 8080
+- ⚡ **Health endpoint** - /health for monitoring and load balancers
+- 🛡️ **Production optimized** - Alpine-based for minimal size

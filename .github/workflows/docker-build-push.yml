@@ -10,6 +10,8 @@ on:
       - 'LICENSE'
       - 'deploy.sh'
       - 'deploy.bat'
+      - '.github/workflows/cleanup-docker-images.yml'
+      - '.github/workflows/docs-update.yml'
   pull_request:
     branches: [ main ]
     paths-ignore:
@@ -19,6 +21,8 @@ on:
       - 'LICENSE'
       - 'deploy.sh'
       - 'deploy.bat'
+      - '.github/workflows/cleanup-docker-images.yml'
+      - '.github/workflows/docs-update.yml'
 
 env:
   DOCKER_USERNAME: vinsim24
@@ -50,7 +54,9 @@ jobs:
              [[ "$file" != ".gitignore" ]] && \
              [[ "$file" != "LICENSE" ]] && \
              [[ "$file" != "deploy.sh" ]] && \
-             [[ "$file" != "deploy.bat" ]]; then
+             [[ "$file" != "deploy.bat" ]] && \
+             [[ "$file" != ".github/workflows/cleanup-docker-images.yml" ]] && \
+             [[ "$file" != ".github/workflows/docs-update.yml" ]]; then
             CODE_CHANGED=true
             echo "Code file changed: $file"
             break
@@ -131,10 +137,25 @@ jobs:
           org.opencontainers.image.created=${{ steps.meta.outputs.DATE }}
           org.opencontainers.image.revision=${{ github.sha }}
           
+    - name: Build and push Nginx
+      uses: docker/build-push-action@v5
+      with:
+        context: ./nginx
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          ${{ env.DOCKER_USERNAME }}/stock-app-nginx:latest
+          ${{ env.DOCKER_USERNAME }}/stock-app-nginx:${{ steps.meta.outputs.SHORT_SHA }}
+        labels: |
+          org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          org.opencontainers.image.created=${{ steps.meta.outputs.DATE }}
+          org.opencontainers.image.revision=${{ github.sha }}
+          
     - name: Update deployment status
       run: |
         echo "✅ Successfully built and pushed all Docker images!"
         echo "📦 Backend: ${{ env.DOCKER_USERNAME }}/stock-app-backend:latest"
         echo "🎨 Frontend: ${{ env.DOCKER_USERNAME }}/stock-app-frontend:latest" 
         echo "⚛️ React: ${{ env.DOCKER_USERNAME }}/stock-app-frontend-react:latest"
+        echo "🔀 Nginx: ${{ env.DOCKER_USERNAME }}/stock-app-nginx:latest"
         echo "🏷️ Tag: ${{ steps.meta.outputs.SHORT_SHA }}"

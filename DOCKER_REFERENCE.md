@@ -266,6 +266,25 @@ docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.Net
 docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}"
 ```
 
+## 📦 Built Images
+
+### Application Stack
+Our GitHub Actions automatically builds and pushes these images:
+
+```bash
+vinsim24/stock-app-backend:latest       # Node.js API server
+vinsim24/stock-app-frontend:latest      # Vanilla JS frontend  
+vinsim24/stock-app-frontend-react:latest # React frontend
+vinsim24/stock-app-nginx:latest         # Custom nginx with embedded config
+```
+
+### Image Features
+- **Multi-platform**: AMD64 + ARM64 support
+- **Optimized**: Alpine-based for minimal size
+- **Tagged**: Each build gets commit SHA tag
+- **Self-contained**: No external file dependencies
+- **Health checks**: Built-in monitoring endpoints
+
 ## 🔄 Automated Workflows
 
 ### Deploy Script (Windows)
